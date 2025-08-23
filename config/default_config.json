@@ -1,0 +1,132 @@
+{
+  "simulation": {
+    "mode": "realtime",
+    "mempool_emulation": true,
+    "block_simulation": true,
+    "historical_replay": false,
+    "synthetic_data": {
+      "enabled": false,
+      "transaction_rate": 1000,
+      "duration_seconds": 3600
+    }
+  },
+  "performance": {
+    "thread_pool_size": 16,
+    "queue_size": 10000,
+    "latency_target_us": 100,
+    "max_concurrent_requests": 100,
+    "enable_simd": true,
+    "memory_mapping": true
+  },
+  "strategies": {
+    "arbitrage": {
+      "enabled": true,
+      "min_profit_eth": 0.01,
+      "max_slippage_percent": 0.5,
+      "target_dexes": ["uniswap_v2", "sushiswap", "balancer", "curve"],
+      "gas_limit": 500000,
+      "max_gas_price_gwei": 100
+    },
+    "sandwich": {
+      "enabled": true,
+      "min_profit_eth": 0.005,
+      "max_gas_price_gwei": 100,
+      "bundle_timeout_ms": 1000,
+      "frontrun_gas_multiplier": 1.1,
+      "backrun_gas_multiplier": 1.05
+    },
+    "frontrun": {
+      "enabled": true,
+      "gas_multiplier": 1.1,
+      "priority_fee_gwei": 2.0,
+      "min_transaction_value_eth": 0.1
+    },
+    "liquidation": {
+      "enabled": false,
+      "min_profit_eth": 0.02,
+      "target_protocols": ["aave", "compound", "makerdao"]
+    }
+  },
+  "blockchain": {
+    "ethereum": {
+      "rpc_url": "https://mainnet.infura.io/v3/YOUR_PROJECT_ID",
+      "chain_id": 1,
+      "block_time_seconds": 12
+    },
+    "flashbots": {
+      "relay_url": "https://relay.flashbots.net",
+      "bundle_timeout_ms": 1000,
+      "max_bundle_size": 10
+    },
+    "fork": {
+      "enabled": false,
+      "url": "http://localhost:8545",
+      "block_number": 15000000
+    }
+  },
+  "trading": {
+    "gas_optimization": {
+      "enabled": true,
+      "base_fee_multiplier": 1.1,
+      "priority_fee_strategy": "dynamic",
+      "max_gas_price_gwei": 100
+    },
+    "slippage": {
+      "default_percent": 0.5,
+      "max_percent": 2.0,
+      "dynamic_adjustment": true
+    },
+    "bundle": {
+      "max_transactions": 10,
+      "timeout_ms": 1000,
+      "retry_attempts": 3
+    }
+  },
+  "monitoring": {
+    "metrics": {
+      "enabled": true,
+      "port": 8080,
+      "export_interval_seconds": 60
+    },
+    "logging": {
+      "level": "INFO",
+      "file": "logs/mev_sim.log",
+      "max_file_size_mb": 100,
+      "max_files": 10
+    },
+    "visualization": {
+      "enabled": true,
+      "update_interval_ms": 1000,
+      "export_formats": ["csv", "json"]
+    }
+  },
+  "data": {
+    "storage": {
+      "type": "file",
+      "directory": "./data",
+      "compression": true
+    },
+    "cache": {
+      "enabled": true,
+      "ttl_seconds": 300,
+      "max_size_mb": 1000
+    },
+    "export": {
+      "formats": ["csv", "json"],
+      "include_metrics": true,
+      "timestamp_format": "iso8601"
+    }
+  },
+  "security": {
+    "rate_limiting": {
+      "enabled": true,
+      "requests_per_second": 100,
+      "burst_size": 50
+    },
+    "validation": {
+      "enable_ssl_verification": true,
+      "max_request_size_mb": 10,
+      "timeout_ms": 5000
+    }
+  }
+}

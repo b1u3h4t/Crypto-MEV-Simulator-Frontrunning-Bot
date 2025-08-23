@@ -1,0 +1,128 @@
+version: '3.8'
+
+services:
+  # MEV Simulator
+  mev-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: mev-simulator
+    restart: unless-stopped
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - SIMULATION_MODE=realtime
+      - ENABLE_VISUALIZATION=true
+      - METRICS_PORT=8080
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./config:/app/config
+    ports:
+      - "8080:8080"  # Metrics endpoint
+    depends_on:
+      - redis
+    networks:
+      - mev-network
+    command: ["--mode", "realtime", "--strategies", "arbitrage,sandwich", "--visualize"]
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: mev-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - mev-network
+    command: redis-server --appendonly yes --maxmemory 1gb --maxmemory-policy allkeys-lru
+
+  # Anvil for local Ethereum node
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: mev-anvil
+    restart: unless-stopped
+    ports:
+      - "8545:8545"
+    networks:
+      - mev-network
+    command: >
+      anvil
+      --host 0.0.0.0
+      --port 8545
+      --accounts 10
+      --balance 10000
+      --gas-limit 30000000
+      --gas-price 1000000000
+      --block-time 12
+      --chain-id 31337
+
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: mev-prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    networks:
+      - mev-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: mev-grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    networks:
+      - mev-network
+    depends_on:
+      - prometheus
+
+  # Nginx for reverse proxy (optional)
+  nginx:
+    image: nginx:alpine
+    container_name: mev-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./monitoring/nginx.conf:/etc/nginx/nginx.conf
+      - ./monitoring/ssl:/etc/nginx/ssl
+    networks:
+      - mev-network
+    depends_on:
+      - mev-simulator
+      - grafana
+
+volumes:
+  redis-data:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+networks:
+  mev-network:
+    driver: bridge
