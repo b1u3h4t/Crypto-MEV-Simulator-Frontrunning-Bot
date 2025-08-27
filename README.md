@@ -267,13 +267,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Flashbots**: For bundle relay architecture
 - **Ethereum Foundation**: For blockchain infrastructure
 - **Open Source Community**: For various libraries and tools
-
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/your-username/mev-frontrunning-bot/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-username/mev-frontrunning-bot/discussions)
-- **Documentation**: [Wiki](https://github.com/your-username/mev-frontrunning-bot/wiki)
-
 ---
 
-**⚠️ Warning**: This software is for educational and research purposes only. Do not use for actual trading or MEV extraction without proper legal and ethical considerations.
+**⚠️ Warning**: This software is for educational and research purposes only. Do not use for actual trading or MEV extraction without proper and ethical considerations.
